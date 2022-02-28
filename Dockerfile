@@ -6,10 +6,8 @@ COPY package*.json ./
 
 RUN npm install
 
-RUN npm i -g typescipt
-
-RUN tsc
+RUN npm install -g typescipt
 
 COPY . ./
 
-CMD ["node", "build/index.js"]
+CMD ["npm", "start"]
