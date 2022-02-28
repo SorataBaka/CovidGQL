@@ -6,7 +6,7 @@ COPY package*.json ./
 
 RUN npm install
 
-RUN npm install typescipt
+RUN npm i -g typescipt
 
 RUN tsc
 
