@@ -6,8 +6,8 @@ COPY package*.json ./
 
 RUN npm install
 
-RUN npm install -g typescipt
+RUN npm install -g typescript
 
-COPY . ./
+COPY . .
 
-CMD ["npm", "start"]
+CMD [ "npm", "start" ]
