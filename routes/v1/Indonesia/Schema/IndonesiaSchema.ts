@@ -7,7 +7,7 @@ import {
 	GraphQLFloat,
 } from "graphql";
 import axios from "axios";
-import { RootIndonesianTotalData } from "../../../../resourceinterfaces/updatejson";
+import { RootIndonesianTotalData } from "../../../../ResourceInterfaces/updatejson";
 import { LatestIndonesianData, DailyUpdateData } from "../../../../types";
 const DataTotal = new GraphQLObjectType({
 	name: "DataTotal",
