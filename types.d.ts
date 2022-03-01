@@ -1,13 +1,19 @@
 export interface LatestIndonesianData {
-	DataTotal: {
+	DataTotalKumulatif: {
 		OrangDalamPemantauan: number;
 		PasienDalamPengawasan: number;
 		TotalSpesimen: number;
 		TotalSpesimenPositif: number;
 		TotalSpesimenNegatif: number;
 	};
+	Total: {
+		JumlahPositif: number;
+		JumlahDirawat: number;
+		JumlahSembuh: number;
+		JumlahMeninggal: number;
+	};
 	Penambahan: {
-		ISOTimeStamp: string;
+		TimeStamp: string;
 		Positif: number;
 		Sembuh: number;
 		Meninggal: number;
