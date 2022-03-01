@@ -7,8 +7,12 @@ import {
 	GraphQLFloat,
 } from "graphql";
 import axios from "axios";
+import crypto from "crypto";
 import { RootIndonesianTotalData } from "../../../../ResourceInterfaces/updatejson";
 import { LatestIndonesianData, DailyUpdateData } from "../../../../types";
+
+let dataHash: string | undefined = undefined;
+let LatestData: LatestIndonesianData | undefined = undefined;
 const DataTotal = new GraphQLObjectType({
 	name: "DataTotal",
 	fields: () => ({
@@ -103,6 +107,14 @@ const rootQuery = new GraphQLObjectType({
 						data: {},
 					};
 				const data = govdata.data as RootIndonesianTotalData;
+				const latestHash = crypto
+					.createHash("sha512")
+					.update(JSON.stringify(data))
+					.digest("hex");
+				if (dataHash === latestHash) {
+					return LatestData;
+				}
+				dataHash = latestHash;
 				let dailyArray: DailyUpdateData[] = [];
 				for (const dailyData of data.update.harian) {
 					const day: DailyUpdateData = {
@@ -148,6 +160,7 @@ const rootQuery = new GraphQLObjectType({
 					},
 					Harian: dailyArray,
 				};
+				LatestData = parsedData;
 				return parsedData;
 			},
 		},
