@@ -50,6 +50,10 @@ Example:
     /indonesia/graphiql <br>
     <strong> Endpoint for the GraphiQl Interface </strong>
   </li>
+  <li>
+    /indonesia/ <br>
+    <strong> Endpoint for the REST</strong>
+  </li>
 </ul>
 
 ## Notable Resources:
