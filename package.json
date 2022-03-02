@@ -5,7 +5,7 @@
 	"main": "build/index.js",
 	"scripts": {
 		"start": "tsc && node build/index.js",
-		"test": "tsc && node build/index.js",
+		"test": "tsc",
 		"getkeys": "node utilities/retrievekeys.js"
 	},
 	"keywords": [

@@ -37,16 +37,19 @@ app.get("/", (req: Request, res: Response) => {
 	return new SuccessReturnStatus(res, returnData);
 });
 
-const initializeRedis = async () => {
-	const redisClient = createClient({
-		url: REDIS_URL,
-	});
-	await redisClient.connect();
-	redisClient.on("connect", () => {
-		console.log("Redis connected");
-	});
-	return redisClient;
-};
-app.listen(PORT, () => {
-	console.log(`Listening on port ${PORT}`);
+const redisClient = createClient({
+	url: REDIS_URL,
 });
+redisClient.on("connect", () => {
+	console.log("Redis connected");
+});
+redisClient.on("error", (err) => {
+	console.log("Redis error: ", err);
+});
+redisClient.connect().then(() => {
+	app.listen(PORT, () => {
+		console.log(`Server started on port ${PORT}`);
+	});
+});
+
+export default redisClient;

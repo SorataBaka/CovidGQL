@@ -11,8 +11,11 @@ import crypto from "crypto";
 import { RootIndonesianTotalData } from "../../../../ResourceInterfaces/updatejson";
 import { LatestIndonesianData, DailyUpdateData } from "../../../../types";
 
-let dataHash: string | undefined = undefined;
-let LatestData: LatestIndonesianData | undefined = undefined;
+// let dataHash: string | undefined = undefined;
+// let LatestData: LatestIndonesianData | undefined = undefined;
+
+import redisClient from "../../../../index";
+import { response } from "express";
 const DataTotal = new GraphQLObjectType({
 	name: "DataTotal",
 	fields: () => ({
@@ -85,12 +88,23 @@ const RootIndonesianData = new GraphQLObjectType({
 	}),
 });
 
+const responseQuery = new GraphQLObjectType({
+	name: "ResponseQuery",
+	fields: () => ({
+		message: { type: GraphQLString },
+		status: { type: GraphQLInt },
+		currentHash: { type: GraphQLString },
+		lastHash: { type: GraphQLString },
+		data: { type: RootIndonesianData },
+	}),
+});
+
 const rootQuery = new GraphQLObjectType({
 	name: "RootQuery",
 	description: "root query for indonesian route",
 	fields: {
 		IndonesianData: {
-			type: RootIndonesianData,
+			type: responseQuery,
 			resolve: async () => {
 				const govdata = await axios
 					.request({
@@ -104,17 +118,28 @@ const rootQuery = new GraphQLObjectType({
 					return {
 						message: "internal server error",
 						status: 500,
+						dataHash: undefined,
 						data: {},
 					};
 				const data = govdata.data as RootIndonesianTotalData;
 				const latestHash = crypto
-					.createHash("sha512")
+					.createHash("sha256")
 					.update(JSON.stringify(data))
 					.digest("hex");
-				if (dataHash === latestHash) {
-					return LatestData;
+				const currentHash = await redisClient.get("dataHash");
+				if (currentHash === latestHash) {
+					const latestData = await redisClient.get("LatestData");
+					if (latestData !== null) {
+						return {
+							message: "success",
+							status: 200,
+							lastHash: currentHash,
+							currentHash: latestHash,
+							data: JSON.parse(latestData),
+						};
+					}
 				}
-				dataHash = latestHash;
+				await redisClient.set("dataHash", latestHash);
 				let dailyArray: DailyUpdateData[] = [];
 				for (const dailyData of data.update.harian) {
 					const day: DailyUpdateData = {
@@ -160,8 +185,14 @@ const rootQuery = new GraphQLObjectType({
 					},
 					Harian: dailyArray,
 				};
-				LatestData = parsedData;
-				return parsedData;
+				await redisClient.set("LatestData", JSON.stringify(parsedData));
+				return {
+					message: "success",
+					status: 200,
+					lastHash: currentHash,
+					currentHash: latestHash,
+					data: parsedData,
+				};
 			},
 		},
 	},
