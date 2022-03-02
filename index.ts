@@ -20,7 +20,7 @@ import SuccessReturnStatus from "./assets/classes/200returnstatus";
 app.use(express.json());
 app.use(versionRouter);
 app.use(cors());
-app.use(morgan("common"));
+app.use(morgan("dev"));
 app.use(compression());
 app.use(favicon(__dirname + "/../assets/favicon.ico"));
 

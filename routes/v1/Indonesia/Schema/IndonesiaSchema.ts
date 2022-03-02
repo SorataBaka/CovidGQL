@@ -15,7 +15,6 @@ import { LatestIndonesianData, DailyUpdateData } from "../../../../types";
 // let LatestData: LatestIndonesianData | undefined = undefined;
 
 import redisClient from "../../../../index";
-import { response } from "express";
 const DataTotal = new GraphQLObjectType({
 	name: "DataTotal",
 	fields: () => ({
@@ -95,104 +94,130 @@ const responseQuery = new GraphQLObjectType({
 		status: { type: GraphQLInt },
 		currentHash: { type: GraphQLString },
 		lastHash: { type: GraphQLString },
-		data: { type: RootIndonesianData },
+		query: { type: RootIndonesianData },
 	}),
 });
+const retrieveAndParseData = async (): Promise<
+	LatestIndonesianData | undefined
+> => {
+	const govdata = await axios
+		.request({
+			url: "https://data.covid19.go.id/public/api/update.json",
+			method: "GET",
+		})
+		.catch((err) => {
+			return undefined;
+		});
+	if (govdata === undefined) {
+		const trygetdata = await redisClient.get("LatestData");
+		if (trygetdata === null) {
+			return undefined;
+		}
+		return JSON.parse(trygetdata);
+	}
+	const data = govdata.data as RootIndonesianTotalData;
+	const latestHash = crypto
+		.createHash("sha256")
+		.update(JSON.stringify(data))
+		.digest("hex");
+	const currentHash = await redisClient.get("dataHash");
+	if (currentHash === latestHash) {
+		const latestData = await redisClient.get("LatestData");
+		if (latestData !== null) {
+			return JSON.parse(latestData);
+		}
+	}
+	await redisClient.set("dataHash", latestHash);
+	let dailyArray: DailyUpdateData[] = [];
+	for (const dailyData of data.update.harian) {
+		const day: DailyUpdateData = {
+			ISOTimeStamp: dailyData.key_as_string,
+			UnixTimeStamp: dailyData.key,
+			Penambahan: {
+				Positif: dailyData.jumlah_positif.value,
+				Sembuh: dailyData.jumlah_sembuh.value,
+				Meninggal: dailyData.jumlah_meninggal.value,
+				Dirawat: dailyData.jumlah_dirawat.value,
+			},
+			Kumulatif: {
+				Positif: dailyData.jumlah_positif_kum.value,
+				Sembuh: dailyData.jumlah_sembuh_kum.value,
+				Meninggal: dailyData.jumlah_meninggal_kum.value,
+				Dirawat: dailyData.jumlah_dirawat_kum.value,
+			},
+		};
+		dailyArray.push(day);
+	}
+	dailyArray.reverse();
+	const parsedData: LatestIndonesianData = {
+		DataTotalKumulatif: {
+			OrangDalamPemantauan: data.data.jumlah_odp,
+			PasienDalamPengawasan: data.data.jumlah_pdp,
+			TotalSpesimen: data.data.total_spesimen,
+			TotalSpesimenPositif:
+				data.data.total_spesimen - data.data.total_spesimen_negatif,
+			TotalSpesimenNegatif: data.data.total_spesimen_negatif,
+		},
+		Total: {
+			JumlahPositif: data.update.total.jumlah_positif,
+			JumlahDirawat: data.update.total.jumlah_dirawat,
+			JumlahSembuh: data.update.total.jumlah_sembuh,
+			JumlahMeninggal: data.update.total.jumlah_meninggal,
+		},
+		Penambahan: {
+			TimeStamp: data.update.penambahan.created,
+			Positif: data.update.penambahan.jumlah_positif,
+			Sembuh: data.update.penambahan.jumlah_sembuh,
+			Meninggal: data.update.penambahan.jumlah_meninggal,
+			Dirawat: data.update.penambahan.jumlah_dirawat,
+		},
+		Harian: dailyArray,
+	};
+	return parsedData;
+};
 
 const rootQuery = new GraphQLObjectType({
 	name: "RootQuery",
 	description: "root query for indonesian route",
 	fields: {
-		IndonesianData: {
-			type: responseQuery,
+		DataTotalKumulatif: {
+			type: DataTotal,
 			resolve: async () => {
-				const govdata = await axios
-					.request({
-						url: "https://data.covid19.go.id/public/api/update.json",
-						method: "GET",
-					})
-					.catch((err) => {
-						return undefined;
-					});
-				if (govdata === undefined)
-					return {
-						message: "internal server error",
-						status: 500,
-						dataHash: undefined,
-						data: {},
-					};
-				const data = govdata.data as RootIndonesianTotalData;
-				const latestHash = crypto
-					.createHash("sha256")
-					.update(JSON.stringify(data))
-					.digest("hex");
-				const currentHash = await redisClient.get("dataHash");
-				if (currentHash === latestHash) {
-					const latestData = await redisClient.get("LatestData");
-					if (latestData !== null) {
-						return {
-							message: "success",
-							status: 200,
-							lastHash: currentHash,
-							currentHash: latestHash,
-							data: JSON.parse(latestData),
-						};
-					}
+				const data = await retrieveAndParseData();
+				if (data === undefined) {
+					return undefined;
 				}
-				await redisClient.set("dataHash", latestHash);
-				let dailyArray: DailyUpdateData[] = [];
-				for (const dailyData of data.update.harian) {
-					const day: DailyUpdateData = {
-						ISOTimeStamp: dailyData.key_as_string,
-						UnixTimeStamp: dailyData.key,
-						Penambahan: {
-							Positif: dailyData.jumlah_positif.value,
-							Sembuh: dailyData.jumlah_sembuh.value,
-							Meninggal: dailyData.jumlah_meninggal.value,
-							Dirawat: dailyData.jumlah_dirawat.value,
-						},
-						Kumulatif: {
-							Positif: dailyData.jumlah_positif_kum.value,
-							Sembuh: dailyData.jumlah_sembuh_kum.value,
-							Meninggal: dailyData.jumlah_meninggal_kum.value,
-							Dirawat: dailyData.jumlah_dirawat_kum.value,
-						},
-					};
-					dailyArray.push(day);
+				return data.DataTotalKumulatif;
+			},
+		},
+		Total: {
+			type: Total,
+			resolve: async () => {
+				const data = await retrieveAndParseData();
+				if (data === undefined) {
+					return undefined;
 				}
-				dailyArray.reverse();
-				const parsedData: LatestIndonesianData = {
-					DataTotalKumulatif: {
-						OrangDalamPemantauan: data.data.jumlah_odp,
-						PasienDalamPengawasan: data.data.jumlah_pdp,
-						TotalSpesimen: data.data.total_spesimen,
-						TotalSpesimenPositif:
-							data.data.total_spesimen - data.data.total_spesimen_negatif,
-						TotalSpesimenNegatif: data.data.total_spesimen_negatif,
-					},
-					Total: {
-						JumlahPositif: data.update.total.jumlah_positif,
-						JumlahDirawat: data.update.total.jumlah_dirawat,
-						JumlahSembuh: data.update.total.jumlah_sembuh,
-						JumlahMeninggal: data.update.total.jumlah_meninggal,
-					},
-					Penambahan: {
-						TimeStamp: data.update.penambahan.created,
-						Positif: data.update.penambahan.jumlah_positif,
-						Sembuh: data.update.penambahan.jumlah_sembuh,
-						Meninggal: data.update.penambahan.jumlah_meninggal,
-						Dirawat: data.update.penambahan.jumlah_dirawat,
-					},
-					Harian: dailyArray,
-				};
-				await redisClient.set("LatestData", JSON.stringify(parsedData));
-				return {
-					message: "success",
-					status: 200,
-					lastHash: currentHash,
-					currentHash: latestHash,
-					data: parsedData,
-				};
+				return data.Total;
+			},
+		},
+		Penambahan: {
+			type: PenambahanTerbaru,
+			resolve: async () => {
+				const data = await retrieveAndParseData();
+				if (data === undefined) {
+					return undefined;
+				}
+				return data.Penambahan;
+			},
+		},
+		Harian: {
+			type: new GraphQLList(DailyData),
+			resolve: async () => {
+				const data = await retrieveAndParseData();
+				if (data === undefined) {
+					return undefined;
+				}
+				return data.Harian;
 			},
 		},
 	},
