@@ -5,6 +5,6 @@ import IndonesianRouter from "./Indonesia/indonesia";
 import Province from "./Province/province";
 
 mainRouter.use("/indonesia", IndonesianRouter);
-mainRouter.get("/province", Province);
+mainRouter.use("/province", Province);
 
 export default mainRouter;
