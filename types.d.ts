@@ -90,7 +90,7 @@ export interface ProvinceData {
 		Sembuh: number;
 		Meninggal: number;
 	};
-	Harian: DailyProvinceUpdate[];
+	PenambahanHarian: DailyProvinceUpdate[];
 }
 export interface DailyProvinceUpdate {
 	Tanggal: string;

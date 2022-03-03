@@ -109,8 +109,10 @@ const retrieveAndParseData = async (): Promise<
 			return undefined;
 		});
 	if (govdata === undefined) {
-		const trygetdata = await redisClient.get("LatestData");
-		if (trygetdata === null) {
+		const trygetdata = await redisClient.get("LatestData").catch((err) => {
+			return undefined;
+		});
+		if (trygetdata === null || trygetdata === undefined) {
 			return undefined;
 		}
 		return JSON.parse(trygetdata);
@@ -120,14 +122,18 @@ const retrieveAndParseData = async (): Promise<
 		.createHash("sha256")
 		.update(JSON.stringify(data))
 		.digest("hex");
-	const currentHash = await redisClient.get("dataHash");
+	const currentHash = await redisClient.get("dataHash").catch((err) => {
+		return undefined;
+	});
 	if (currentHash === latestHash) {
-		const latestData = await redisClient.get("LatestData");
-		if (latestData !== null) {
+		const latestData = await redisClient.get("LatestData").catch((err) => {
+			return undefined;
+		});
+		if (latestData !== null && latestData !== undefined) {
 			return JSON.parse(latestData);
 		}
 	}
-	await redisClient.set("dataHash", latestHash);
+	await redisClient.set("dataHash", latestHash).catch();
 	let dailyArray: DailyUpdateData[] = [];
 	for (const dailyData of data.update.harian) {
 		const day: DailyUpdateData = {
