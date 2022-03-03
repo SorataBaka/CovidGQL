@@ -31,7 +31,14 @@ app.get("/", (req: Request, res: Response) => {
 		versions: [
 			{
 				version: "v1",
-				endpoints: ["/indonesia/", "/indonesia/graphql", "/indonesia/graphiql"],
+				endpoints: [
+					"/indonesia/",
+					"/indonesia/graphql",
+					"/indonesia/graphiql",
+					"/province/",
+					"/province/graphql",
+					"/province/graphiql",
+				],
 			},
 		],
 	};

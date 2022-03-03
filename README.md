@@ -43,7 +43,7 @@ Example:
     Use query parameter: <strong> query </strong> to send the query for the data you want to retrieve. <br>
     Example:
     <code>
-    /indonesia/graphiql?query=%7B%0A%20%20IndonesianData%7B%0A%20%20%20%20Total%7B%0A%20%20%20%20%20%20JumlahPositif%0A%20%20%20%20%20%20JumlahDirawat%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D
+    /indonesia/graphql?query=%7B%0A%20%20IndonesianData%7B%0A%20%20%20%20Total%7B%0A%20%20%20%20%20%20JumlahPositif%0A%20%20%20%20%20%20JumlahDirawat%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D
     </code>
   </li>
   <li>
@@ -52,6 +52,23 @@ Example:
   </li>
   <li>
     /indonesia/ <br>
+    <strong> Endpoint for the REST</strong>
+  </li>
+  <li>
+    /province/graphql <br>
+    <strong> Endpoint for the GraphQL API </strong> <br>
+    Use query parameter: <strong> query </strong> to send the query for the data you want to retrieve. <br>
+    Example:
+    <code>
+    /province/graphql?query=%7B%0A%20%20IndonesianData%7B%0A%20%20%20%20Total%7B%0A%20%20%20%20%20%20JumlahPositif%0A%20%20%20%20%20%20JumlahDirawat%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D
+    </code>
+  </li>
+  <li>
+    /province/graphiql <br>
+    <strong> Endpoint for the GraphiQl Interface </strong>
+  </li>
+  <li>
+    /province/ <br>
     <strong> Endpoint for the REST</strong>
   </li>
 </ul>
