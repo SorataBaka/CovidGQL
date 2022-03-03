@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import compression from "compression";
 import favicon from "serve-favicon";
 import { createClient } from "redis";
+import errorhandler from "errorhandler";
 
 const app = express();
 dotenv.config();
@@ -23,7 +24,7 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(compression());
 app.use(favicon(__dirname + "/../assets/favicon.ico"));
-
+app.use(errorhandler());
 app.get("/", (req: Request, res: Response) => {
 	const returnData = {
 		message: "GraphQL API for Covid19 Status in Indonesia",
@@ -46,6 +47,7 @@ redisClient.on("connect", () => {
 redisClient.on("error", (err) => {
 	console.log("Redis error: ", err);
 });
+
 redisClient.connect().then(() => {
 	app.listen(PORT, () => {
 		console.log(`Server started on port ${PORT}`);
