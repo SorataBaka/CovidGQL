@@ -4,7 +4,6 @@ import {
 	GraphQLObjectType,
 	GraphQLList,
 	GraphQLSchema,
-	GraphQLFloat,
 } from "graphql";
 import axios from "axios";
 import crypto from "crypto";
@@ -72,7 +71,7 @@ const retrieveProvinceData = async (): Promise<
 			url: "https://data.covid19.go.id/public/api/prov.json",
 			method: "GET",
 		})
-		.catch((err) => {
+		.catch(() => {
 			return undefined;
 		});
 	const dailyProvinceData = await axios
@@ -80,13 +79,13 @@ const retrieveProvinceData = async (): Promise<
 			url: "https://data.covid19.go.id/public/api/prov_time.json",
 			method: "GET",
 		})
-		.catch((err) => {
+		.catch(() => {
 			return undefined;
 		});
 	if (baseProvinceData === undefined || dailyProvinceData === undefined) {
 		const checkCachedData = await redisClient
 			.get("LatestProvinceData")
-			.catch((err) => {
+			.catch(() => {
 				return undefined;
 			});
 		if (checkCachedData === null || checkCachedData === undefined) {
@@ -102,13 +101,13 @@ const retrieveProvinceData = async (): Promise<
 	const hash = crypto.createHash("sha256").update(MixedString).digest("hex");
 	const checkCachedData = await redisClient
 		.get("provinceDataHash")
-		.catch((err) => {
+		.catch(() => {
 			return undefined;
 		});
 	if (checkCachedData === hash) {
 		const checkCachedData = await redisClient
 			.get("LatestProvinceData")
-			.catch((err) => {
+			.catch(() => {
 				return undefined;
 			});
 		if (checkCachedData !== null && checkCachedData !== undefined) {
@@ -116,9 +115,9 @@ const retrieveProvinceData = async (): Promise<
 		}
 	}
 	await redisClient.set("provinceDataHash", hash).catch();
-	let ProvinceDataList: ProvinceData[] = [];
+	const ProvinceDataList: ProvinceData[] = [];
 	for (const baseProvinceData of provinceData.list_data) {
-		let dailyData: DailyProvinceUpdate[] = [];
+		const dailyData: DailyProvinceUpdate[] = [];
 		for (const dailyUpdate of provinceDailyData.list) {
 			const selectedProvinceData = dailyUpdate.data.filter((data) => {
 				return data.key === baseProvinceData.key;

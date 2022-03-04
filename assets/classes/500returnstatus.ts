@@ -1,10 +1,10 @@
-import { Response } from 'express'
+import { Response } from "express";
 export default class SuccessReturnStatus {
-  constructor(res:Response, data:any|undefined){
-    return res.status(200).json({
-      message: "Internal server error",
-      status: 500,
-      data: data || undefined
-    })
-  }
+	constructor(res: Response, data: object | undefined) {
+		return res.status(200).json({
+			message: "Internal server error",
+			status: 500,
+			data: data || undefined,
+		});
+	}
 }

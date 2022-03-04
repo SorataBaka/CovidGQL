@@ -17,7 +17,7 @@ const rest = async (req: Request, res: Response) => {
 				url: "https://data.covid19.go.id/public/api/update.json",
 				method: "GET",
 			})
-			.catch((err) => {
+			.catch(() => {
 				return undefined;
 			});
 		if (govdata === undefined) {
@@ -40,7 +40,7 @@ const rest = async (req: Request, res: Response) => {
 			}
 		}
 		await redisClient.set("dataHash", latestHash);
-		let dailyArray: DailyUpdateData[] = [];
+		const dailyArray: DailyUpdateData[] = [];
 		for (const dailyData of data.update.harian) {
 			const day: DailyUpdateData = {
 				ISOTimeStamp: dailyData.key_as_string,

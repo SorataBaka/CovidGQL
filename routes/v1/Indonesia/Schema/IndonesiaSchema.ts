@@ -77,26 +77,26 @@ const Total = new GraphQLObjectType({
 	}),
 });
 
-const RootIndonesianData = new GraphQLObjectType({
-	name: "DataIndonesia",
-	fields: () => ({
-		DataTotalKumulatif: { type: DataTotal },
-		Total: { type: Total },
-		Penambahan: { type: PenambahanTerbaru },
-		Harian: { type: new GraphQLList(DailyData) },
-	}),
-});
+// const RootIndonesianData = new GraphQLObjectType({
+// 	name: "DataIndonesia",
+// 	fields: () => ({
+// 		DataTotalKumulatif: { type: DataTotal },
+// 		Total: { type: Total },
+// 		Penambahan: { type: PenambahanTerbaru },
+// 		Harian: { type: new GraphQLList(DailyData) },
+// 	}),
+// });
 
-const responseQuery = new GraphQLObjectType({
-	name: "ResponseQuery",
-	fields: () => ({
-		message: { type: GraphQLString },
-		status: { type: GraphQLInt },
-		currentHash: { type: GraphQLString },
-		lastHash: { type: GraphQLString },
-		query: { type: RootIndonesianData },
-	}),
-});
+// const responseQuery = new GraphQLObjectType({
+// 	name: "ResponseQuery",
+// 	fields: () => ({
+// 		message: { type: GraphQLString },
+// 		status: { type: GraphQLInt },
+// 		currentHash: { type: GraphQLString },
+// 		lastHash: { type: GraphQLString },
+// 		query: { type: RootIndonesianData },
+// 	}),
+// });
 const retrieveAndParseData = async (): Promise<
 	LatestIndonesianData | undefined
 > => {
@@ -105,11 +105,11 @@ const retrieveAndParseData = async (): Promise<
 			url: "https://data.covid19.go.id/public/api/update.json",
 			method: "GET",
 		})
-		.catch((err) => {
+		.catch(() => {
 			return undefined;
 		});
 	if (govdata === undefined) {
-		const trygetdata = await redisClient.get("LatestData").catch((err) => {
+		const trygetdata = await redisClient.get("LatestData").catch(() => {
 			return undefined;
 		});
 		if (trygetdata === null || trygetdata === undefined) {
@@ -122,11 +122,11 @@ const retrieveAndParseData = async (): Promise<
 		.createHash("sha256")
 		.update(JSON.stringify(data))
 		.digest("hex");
-	const currentHash = await redisClient.get("dataHash").catch((err) => {
+	const currentHash = await redisClient.get("dataHash").catch(() => {
 		return undefined;
 	});
 	if (currentHash === latestHash) {
-		const latestData = await redisClient.get("LatestData").catch((err) => {
+		const latestData = await redisClient.get("LatestData").catch(() => {
 			return undefined;
 		});
 		if (latestData !== null && latestData !== undefined) {
@@ -134,7 +134,7 @@ const retrieveAndParseData = async (): Promise<
 		}
 	}
 	await redisClient.set("dataHash", latestHash).catch();
-	let dailyArray: DailyUpdateData[] = [];
+	const dailyArray: DailyUpdateData[] = [];
 	for (const dailyData of data.update.harian) {
 		const day: DailyUpdateData = {
 			ISOTimeStamp: dailyData.key_as_string,
