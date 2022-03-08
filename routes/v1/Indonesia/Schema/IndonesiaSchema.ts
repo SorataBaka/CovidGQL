@@ -126,6 +126,7 @@ const retrieveAndParseData = async (): Promise<
 		return undefined;
 	});
 	if (currentHash === latestHash) {
+		console.log("Data is the same");
 		const latestData = await redisClient.get("LatestData").catch(() => {
 			return undefined;
 		});
